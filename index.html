@@ -148,16 +148,28 @@
     animation: fadein 0.5s ease;
   }
 
-  #comment .who {
+  #comment .who,
+  .entry-comment .who {
     font-size: 0.8rem;
     color: #c9b8a3;
     letter-spacing: 0.2em;
     margin-bottom: 0.3rem;
   }
 
-  #comment .words {
+  #comment .words,
+  .entry-comment .words {
     border-left: 3px solid var(--aka);
     padding-left: 0.7rem;
+  }
+
+  .entry-comment {
+    background: var(--sumi);
+    color: var(--kinari);
+    border-radius: 8px;
+    padding: 0.8rem;
+    margin-top: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
   @keyframes fadein {
@@ -354,6 +366,10 @@ const TOKISHIGE_LINES = [
   "疲れた日ほど書きなよ。僕が全部覚えておいてあげる"
 ];
 
+function randomTokishigeLine() {
+  return TOKISHIGE_LINES[Math.floor(Math.random() * TOKISHIGE_LINES.length)];
+}
+
 /**
  * 保存された日記に対する一言を返す。
  * @param {{date: string, text: string}} entry 保存された日記
@@ -361,7 +377,7 @@ const TOKISHIGE_LINES = [
  */
 async function getTokishigeComment(entry) {
   // 現在はランダム。将来ここを API 呼び出しに置き換える。
-  return TOKISHIGE_LINES[Math.floor(Math.random() * TOKISHIGE_LINES.length)];
+  return randomTokishigeLine();
 }
 
 /* =========================================================
@@ -381,6 +397,22 @@ function loadEntries() {
 
 function saveEntries(entries) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+/**
+ * 一言が保存されていない既存の日記に、ランダムで一つ割り当てて固定する。
+ * (一言の保存機能を追加する前に書かれた日記のための移行処理)
+ */
+function migrateComments() {
+  const entries = loadEntries();
+  let changed = false;
+  for (const entry of entries) {
+    if (typeof entry.comment !== "string" || entry.comment === "") {
+      entry.comment = randomTokishigeLine();
+      changed = true;
+    }
+  }
+  if (changed) saveEntries(entries);
 }
 
 /* =========================================================
@@ -458,6 +490,20 @@ function renderList() {
     text.className = "entry-text";
     text.textContent = entry.text;
 
+    let commentBox = null;
+    if (entry.comment) {
+      commentBox = document.createElement("div");
+      commentBox.className = "entry-comment";
+      const who = document.createElement("div");
+      who.className = "who";
+      who.textContent = "時重";
+      const words = document.createElement("div");
+      words.className = "words";
+      words.textContent = entry.comment;
+      commentBox.appendChild(who);
+      commentBox.appendChild(words);
+    }
+
     const row = document.createElement("div");
     row.className = "btn-row";
 
@@ -474,6 +520,7 @@ function renderList() {
     row.appendChild(editBtn);
     row.appendChild(delBtn);
     body.appendChild(text);
+    if (commentBox) body.appendChild(commentBox);
     body.appendChild(row);
     item.appendChild(head);
     item.appendChild(body);
@@ -526,11 +573,13 @@ async function handleSave() {
     entries.push(saved);
   }
 
+  // 表示した一言は日記の一部として一緒に保存し、以後は固定する
+  const words = await getTokishigeComment(saved);
+  if (saved) saved.comment = words;
+
   saveEntries(entries);
   resetForm();
   renderList();
-
-  const words = await getTokishigeComment(saved);
   showComment(words);
 }
 
@@ -592,7 +641,11 @@ function handleImport(file) {
       while (usedIds.has(id)) id++;
       usedIds.add(id);
       existing.add(key);
-      entries.push({ id, date: item.date, text: item.text });
+      const comment =
+        typeof item.comment === "string" && item.comment !== ""
+          ? item.comment
+          : randomTokishigeLine();
+      entries.push({ id, date: item.date, text: item.text, comment });
       added++;
     }
 
@@ -624,6 +677,7 @@ saveBtn.addEventListener("click", handleSave);
 cancelBtn.addEventListener("click", resetForm);
 
 resetForm();
+migrateComments();
 renderList();
 </script>
 
