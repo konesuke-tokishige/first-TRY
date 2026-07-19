@@ -13,6 +13,7 @@
     --kinari-dark: #ece4d4;
     --aka: #8e2f38;         /* 深い赤 */
     --aka-dark: #6f232b;
+    --kon: #1B2333;         /* 濃紺 (軍服の黒紺) */
     --line: #d8cfbc;
   }
 
@@ -36,7 +37,8 @@
   }
 
   header {
-    background: var(--sumi);
+    position: relative;
+    background: var(--kon);
     color: var(--kinari);
     text-align: center;
     padding: calc(env(safe-area-inset-top) + 1rem) 1rem 1rem;
@@ -46,6 +48,24 @@
   header h1 {
     font-size: 1.3rem;
     font-weight: 600;
+  }
+
+  #settingsBtn {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.45rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+    color: var(--kinari);
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.75;
+  }
+
+  #settingsBtn:active {
+    opacity: 1;
   }
 
   main {
@@ -135,7 +155,7 @@
   /* ---- 時重の一言 ---- */
   #comment {
     display: none;
-    background: var(--sumi);
+    background: var(--kon);
     color: var(--kinari);
     border-radius: 10px;
     padding: 1rem;
@@ -163,7 +183,7 @@
   }
 
   .entry-comment {
-    background: var(--sumi);
+    background: var(--kon);
     color: var(--kinari);
     border-radius: 8px;
     padding: 0.8rem;
@@ -295,15 +315,112 @@
     background: var(--kinari-dark);
     color: var(--sumi);
   }
+
+  /* ---- 設定画面 ---- */
+  #settings {
+    display: none;
+  }
+
+  #settings.open {
+    display: block;
+  }
+
+  #settings h2 {
+    margin-top: 0.4rem;
+  }
+
+  #settings select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.05rem;
+    color: var(--sumi);
+    background: var(--kinari);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.7rem;
+    min-height: 48px;
+    margin-bottom: 0.9rem;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  #settings input[type="password"],
+  #settings input[type="text"] {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.05rem;
+    color: var(--sumi);
+    background: var(--kinari);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.7rem;
+    min-height: 48px;
+    margin-bottom: 0.9rem;
+  }
+
+  #settings textarea {
+    min-height: 7rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .settings-note {
+    font-size: 0.8rem;
+    color: var(--sumi-light);
+    line-height: 1.6;
+    margin-bottom: 0.9rem;
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>日記帳</h1>
+  <button id="settingsBtn" aria-label="設定">&#9881;</button>
 </header>
 
 <main>
+  <!-- 設定画面 -->
+  <section id="settings" class="card">
+    <h2>設定</h2>
+
+    <label for="aiProvider">AI会社</label>
+    <select id="aiProvider">
+      <option value="none">使わない</option>
+      <option value="claude">Claude</option>
+      <option value="openai">OpenAI</option>
+      <option value="gemini">Gemini</option>
+    </select>
+
+    <label for="modelSelect">モデル</label>
+    <select id="modelSelect"></select>
+
+    <label for="modelCustom">モデル名を自由入力で上書き（空欄なら上の選択を使用）</label>
+    <input type="text" id="modelCustom" autocapitalize="off" autocorrect="off"
+           placeholder="例: 新しいモデル名">
+
+    <label for="apiKeyClaude">Claude APIキー</label>
+    <input type="password" id="apiKeyClaude" autocomplete="off" placeholder="sk-ant-...">
+
+    <label for="apiKeyOpenai">OpenAI APIキー</label>
+    <input type="password" id="apiKeyOpenai" autocomplete="off" placeholder="sk-...">
+
+    <label for="apiKeyGemini">Gemini APIキー</label>
+    <input type="password" id="apiKeyGemini" autocomplete="off" placeholder="AIza...">
+
+    <label for="persona">人格設定文（system プロンプトとして送信）</label>
+    <textarea id="persona" placeholder="時重の人格設定文を貼り付け"></textarea>
+
+    <p class="settings-note">
+      設定とAPIキーはこの端末のlocalStorageにのみ保存され、日記の書き出しファイルには含まれません。
+      API未設定・通信失敗時は、従来のランダムな一言に自動で切り替わります。
+    </p>
+
+    <div class="btn-row">
+      <button class="btn" id="saveSettingsBtn">設定を保存</button>
+      <button class="btn btn-sub" id="closeSettingsBtn">閉じる</button>
+    </div>
+  </section>
+
   <!-- 入力フォーム -->
   <section class="card">
     <label for="date">日付</label>
@@ -370,13 +487,182 @@ function randomTokishigeLine() {
   return TOKISHIGE_LINES[Math.floor(Math.random() * TOKISHIGE_LINES.length)];
 }
 
+/* =========================================================
+ * 設定 (localStorage)
+ * APIキーは localStorage にのみ保存し、コードには埋め込まない。
+ * 書き出しJSONにも含めない (日記とは別キーで管理)。
+ * ========================================================= */
+
+const SETTINGS_KEY = "diary-settings";
+
+const AI_PROVIDERS = {
+  claude: {
+    label: "Claude",
+    models: ["claude-opus-4-8", "claude-sonnet-5", "claude-haiku-4-5"],
+  },
+  openai: {
+    label: "OpenAI",
+    models: ["gpt-5.1", "gpt-5-mini", "gpt-4o"],
+  },
+  gemini: {
+    label: "Gemini",
+    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-3-pro-preview"],
+  },
+};
+
+function defaultSettings() {
+  return {
+    provider: "none",
+    persona: "",
+    apiKeys: { claude: "", openai: "", gemini: "" },
+    models: {
+      claude: AI_PROVIDERS.claude.models[0],
+      openai: AI_PROVIDERS.openai.models[0],
+      gemini: AI_PROVIDERS.gemini.models[0],
+    },
+    customModels: { claude: "", openai: "", gemini: "" },
+  };
+}
+
+function loadSettings() {
+  const base = defaultSettings();
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return base;
+    const saved = JSON.parse(raw);
+    return {
+      ...base,
+      ...saved,
+      apiKeys: { ...base.apiKeys, ...(saved.apiKeys || {}) },
+      models: { ...base.models, ...(saved.models || {}) },
+      customModels: { ...base.customModels, ...(saved.customModels || {}) },
+    };
+  } catch (e) {
+    return base;
+  }
+}
+
+function saveSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+/* =========================================================
+ * AI 呼び出し (会社ごとに関数を分離)
+ * system = 人格設定文 / user = 日記本文
+ * ========================================================= */
+
+const AI_TIMEOUT_MS = 30000;
+
+function buildSystemPrompt(persona) {
+  const base = persona && persona.trim()
+    ? persona.trim()
+    : "あなたは日記アプリの相棒として、書かれた日記に一言コメントを返します。";
+  return base + "\n\n返答は必ず3文以内で、コメント本文のみを返すこと。";
+}
+
+async function fetchJson(url, options) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callClaude(apiKey, model, system, userText) {
+  const data = await fetchJson("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      system,
+      messages: [{ role: "user", content: userText }],
+    }),
+  });
+  const block = (data.content || []).find((b) => b.type === "text");
+  return block ? block.text : "";
+}
+
+async function callOpenAI(apiKey, model, system, userText) {
+  const data = await fetchJson("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userText },
+      ],
+    }),
+  });
+  return data.choices && data.choices[0] && data.choices[0].message
+    ? data.choices[0].message.content
+    : "";
+}
+
+async function callGemini(apiKey, model, system, userText) {
+  const url =
+    "https://generativelanguage.googleapis.com/v1beta/models/" +
+    encodeURIComponent(model) + ":generateContent";
+  const data = await fetchJson(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: userText }] }],
+    }),
+  });
+  const cand = data.candidates && data.candidates[0];
+  const part = cand && cand.content && cand.content.parts &&
+    cand.content.parts.find((p) => typeof p.text === "string");
+  return part ? part.text : "";
+}
+
+const AI_CALLERS = { claude: callClaude, openai: callOpenAI, gemini: callGemini };
+
+function effectiveModel(settings, provider) {
+  const custom = (settings.customModels[provider] || "").trim();
+  return custom || settings.models[provider];
+}
+
 /**
  * 保存された日記に対する一言を返す。
+ * APIキーと会社が設定されていれば AI の返答を、
+ * 未設定・通信失敗時は従来のランダムな一言を返す (エラーで止めない)。
  * @param {{date: string, text: string}} entry 保存された日記
  * @returns {Promise<string>} 表示する一言
  */
 async function getTokishigeComment(entry) {
-  // 現在はランダム。将来ここを API 呼び出しに置き換える。
+  const settings = loadSettings();
+  const caller = AI_CALLERS[settings.provider];
+  const apiKey = settings.apiKeys[settings.provider];
+  const model = caller ? effectiveModel(settings, settings.provider) : "";
+
+  if (caller && apiKey && model) {
+    try {
+      const text = await caller(
+        apiKey, model, buildSystemPrompt(settings.persona), entry.text
+      );
+      if (typeof text === "string" && text.trim()) return text.trim();
+    } catch (e) {
+      // 通信失敗・タイムアウト時はランダムに切り替える
+    }
+  }
   return randomTokishigeLine();
 }
 
@@ -574,7 +860,17 @@ async function handleSave() {
   }
 
   // 表示した一言は日記の一部として一緒に保存し、以後は固定する
-  const words = await getTokishigeComment(saved);
+  // (AI設定時は通信に少し時間がかかるため、待つ間ボタンを無効化)
+  saveBtn.disabled = true;
+  const prevLabel = saveBtn.textContent;
+  saveBtn.textContent = "保存中…";
+  let words;
+  try {
+    words = await getTokishigeComment(saved);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = prevLabel;
+  }
   if (saved) saved.comment = words;
 
   saveEntries(entries);
@@ -671,6 +967,88 @@ importBtn.addEventListener("click", () => {
 importFile.addEventListener("change", () => {
   const file = importFile.files[0];
   if (file) handleImport(file);
+});
+
+/* =========================================================
+ * 設定画面
+ * ========================================================= */
+
+const settingsEl = document.getElementById("settings");
+const settingsBtn = document.getElementById("settingsBtn");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const providerSelect = document.getElementById("aiProvider");
+const modelSelect = document.getElementById("modelSelect");
+const modelCustom = document.getElementById("modelCustom");
+const personaInput = document.getElementById("persona");
+const keyInputs = {
+  claude: document.getElementById("apiKeyClaude"),
+  openai: document.getElementById("apiKeyOpenai"),
+  gemini: document.getElementById("apiKeyGemini"),
+};
+
+function renderModelOptions(provider, selected) {
+  modelSelect.innerHTML = "";
+  const info = AI_PROVIDERS[provider];
+  if (!info) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "（AIを使わない）";
+    modelSelect.appendChild(opt);
+    modelSelect.disabled = true;
+    modelCustom.disabled = true;
+    return;
+  }
+  modelSelect.disabled = false;
+  modelCustom.disabled = false;
+  for (const m of info.models) {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    modelSelect.appendChild(opt);
+  }
+  if (selected && info.models.includes(selected)) modelSelect.value = selected;
+}
+
+function renderSettingsForm() {
+  const s = loadSettings();
+  providerSelect.value = s.provider;
+  personaInput.value = s.persona;
+  for (const p of Object.keys(keyInputs)) keyInputs[p].value = s.apiKeys[p];
+  renderModelOptions(s.provider, s.models[s.provider]);
+  modelCustom.value = AI_PROVIDERS[s.provider]
+    ? s.customModels[s.provider]
+    : "";
+}
+
+providerSelect.addEventListener("change", () => {
+  const s = loadSettings();
+  const p = providerSelect.value;
+  renderModelOptions(p, s.models[p]);
+  modelCustom.value = AI_PROVIDERS[p] ? s.customModels[p] : "";
+});
+
+settingsBtn.addEventListener("click", () => {
+  renderSettingsForm();
+  settingsEl.classList.toggle("open");
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+  settingsEl.classList.remove("open");
+});
+
+saveSettingsBtn.addEventListener("click", () => {
+  const s = loadSettings();
+  s.provider = providerSelect.value;
+  s.persona = personaInput.value;
+  for (const p of Object.keys(keyInputs)) s.apiKeys[p] = keyInputs[p].value.trim();
+  if (AI_PROVIDERS[s.provider]) {
+    s.models[s.provider] = modelSelect.value;
+    s.customModels[s.provider] = modelCustom.value.trim();
+  }
+  saveSettings(s);
+  settingsEl.classList.remove("open");
+  alert("設定を保存しました");
 });
 
 saveBtn.addEventListener("click", handleSave);
