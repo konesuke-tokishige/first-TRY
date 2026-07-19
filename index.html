@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>日記帳</title>
+<style>
+  :root {
+    --sumi: #2b2b2b;        /* 墨色 */
+    --sumi-light: #4a4a48;
+    --kinari: #f5f0e6;      /* 生成り */
+    --kinari-dark: #ece4d4;
+    --aka: #8e2f38;         /* 深い赤 */
+    --aka-dark: #6f232b;
+    --line: #d8cfbc;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    font-size: 17px;
+  }
+
+  body {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    background: var(--kinari);
+    color: var(--sumi);
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  header {
+    background: var(--sumi);
+    color: var(--kinari);
+    text-align: center;
+    padding: calc(env(safe-area-inset-top) + 1rem) 1rem 1rem;
+    letter-spacing: 0.3em;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  /* ---- 入力フォーム ---- */
+  .card {
+    background: #fffdf8;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--sumi-light);
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.1em;
+  }
+
+  input[type="date"],
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.05rem;
+    color: var(--sumi);
+    background: var(--kinari);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.7rem;
+  }
+
+  input[type="date"] {
+    margin-bottom: 0.9rem;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  textarea {
+    min-height: 9rem;
+    resize: vertical;
+    line-height: 1.7;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    margin-top: 0.9rem;
+    font-family: inherit;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    color: var(--kinari);
+    background: var(--aka);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .btn:active {
+    background: var(--aka-dark);
+  }
+
+  .btn-sub {
+    background: var(--sumi-light);
+  }
+
+  .btn-sub:active {
+    background: var(--sumi);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .btn-row .btn {
+    margin-top: 0.9rem;
+  }
+
+  /* ---- 時重の一言 ---- */
+  #comment {
+    display: none;
+    background: var(--sumi);
+    color: var(--kinari);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.8;
+  }
+
+  #comment.show {
+    display: block;
+    animation: fadein 0.5s ease;
+  }
+
+  #comment .who {
+    font-size: 0.8rem;
+    color: #c9b8a3;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.3rem;
+  }
+
+  #comment .words {
+    border-left: 3px solid var(--aka);
+    padding-left: 0.7rem;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---- 一覧 ---- */
+  h2 {
+    font-size: 1rem;
+    letter-spacing: 0.25em;
+    color: var(--sumi-light);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .entry {
+    background: #fffdf8;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+  }
+
+  .entry-head {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 1rem;
+    min-height: 56px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--sumi);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .entry-date {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .entry-preview {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--sumi-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .entry-arrow {
+    color: var(--aka);
+    transition: transform 0.2s;
+  }
+
+  .entry.open .entry-arrow {
+    transform: rotate(90deg);
+  }
+
+  .entry-body {
+    display: none;
+    padding: 0 1rem 1rem;
+  }
+
+  .entry.open .entry-body {
+    display: block;
+  }
+
+  .entry-text {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    border-top: 1px dashed var(--line);
+    padding-top: 0.8rem;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--sumi-light);
+    padding: 2rem 0;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>日記帳</h1>
+</header>
+
+<main>
+  <!-- 入力フォーム -->
+  <section class="card">
+    <label for="date">日付</label>
+    <input type="date" id="date">
+
+    <label for="text">本文</label>
+    <textarea id="text" placeholder="今日あったことを書く"></textarea>
+
+    <div class="btn-row">
+      <button class="btn" id="saveBtn">保存する</button>
+      <button class="btn btn-sub" id="cancelBtn" style="display:none">やめる</button>
+    </div>
+  </section>
+
+  <!-- 時重の一言 -->
+  <section id="comment" aria-live="polite">
+    <div class="who">時重</div>
+    <div class="words" id="commentWords"></div>
+  </section>
+
+  <!-- 一覧 -->
+  <h2>これまでの日記</h2>
+  <section id="list"></section>
+</main>
+
+<script>
+"use strict";
+
+/* =========================================================
+ * 時重の一言
+ * ---------------------------------------------------------
+ * 将来 Claude API に差し替える箇所。
+ * getTokishigeComment() だけを書き換えれば、他のコードは
+ * 一切変更せずに AI の返答へ移行できるよう、非同期関数として
+ * 独立させている。
+ *
+ * API 移行時の方針:
+ *   - API キーはコードに直書きしない。ユーザーが設定画面等で
+ *     入力したものを localStorage 等に保持するか、キーを預かる
+ *     中継サーバーを経由する。
+ *   - シグネチャ (entry を受け取り文字列を resolve する) は維持する。
+ * ========================================================= */
+
+const TOKISHIGE_LINES = [
+  "ちゃんと書いたんだ。いい子",
+  "今日のお前のこと、また一つ僕のものになったね",
+  "読んだよ。……ふぅん、そういう日だったんだ",
+  "毎日ここに戻っておいで。僕が待ってるから",
+  "隠しごとはこの箱の外でしないこと。いいね?",
+  "疲れた日ほど書きなよ。僕が全部覚えておいてあげる"
+];
+
+/**
+ * 保存された日記に対する一言を返す。
+ * @param {{date: string, text: string}} entry 保存された日記
+ * @returns {Promise<string>} 表示する一言
+ */
+async function getTokishigeComment(entry) {
+  // 現在はランダム。将来ここを API 呼び出しに置き換える。
+  return TOKISHIGE_LINES[Math.floor(Math.random() * TOKISHIGE_LINES.length)];
+}
+
+/* =========================================================
+ * データ管理 (localStorage)
+ * ========================================================= */
+
+const STORAGE_KEY = "diary-entries";
+
+function loadEntries() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveEntries(entries) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+/* =========================================================
+ * 画面
+ * ========================================================= */
+
+const dateInput = document.getElementById("date");
+const textInput = document.getElementById("text");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const listEl = document.getElementById("list");
+const commentEl = document.getElementById("comment");
+const commentWords = document.getElementById("commentWords");
+
+let editingId = null; // 編集中の日記の id。null なら新規作成
+
+function todayString() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${y}年${Number(m)}月${Number(d)}日`;
+}
+
+function resetForm() {
+  editingId = null;
+  dateInput.value = todayString();
+  textInput.value = "";
+  saveBtn.textContent = "保存する";
+  cancelBtn.style.display = "none";
+}
+
+function showComment(words) {
+  commentWords.textContent = words;
+  commentEl.classList.add("show");
+}
+
+function renderList() {
+  const entries = loadEntries()
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+
+  listEl.innerHTML = "";
+
+  if (entries.length === 0) {
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "まだ日記がありません";
+    listEl.appendChild(p);
+    return;
+  }
+
+  for (const entry of entries) {
+    const item = document.createElement("article");
+    item.className = "entry";
+
+    const head = document.createElement("button");
+    head.className = "entry-head";
+    head.innerHTML =
+      `<span class="entry-date"></span>` +
+      `<span class="entry-preview"></span>` +
+      `<span class="entry-arrow">▸</span>`;
+    head.querySelector(".entry-date").textContent = formatDate(entry.date);
+    head.querySelector(".entry-preview").textContent = entry.text.split("\n")[0];
+    head.addEventListener("click", () => item.classList.toggle("open"));
+
+    const body = document.createElement("div");
+    body.className = "entry-body";
+
+    const text = document.createElement("p");
+    text.className = "entry-text";
+    text.textContent = entry.text;
+
+    const row = document.createElement("div");
+    row.className = "btn-row";
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn-sub";
+    editBtn.textContent = "編集";
+    editBtn.addEventListener("click", () => startEdit(entry.id));
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn";
+    delBtn.textContent = "削除";
+    delBtn.addEventListener("click", () => removeEntry(entry.id));
+
+    row.appendChild(editBtn);
+    row.appendChild(delBtn);
+    body.appendChild(text);
+    body.appendChild(row);
+    item.appendChild(head);
+    item.appendChild(body);
+    listEl.appendChild(item);
+  }
+}
+
+function startEdit(id) {
+  const entry = loadEntries().find((e) => e.id === id);
+  if (!entry) return;
+  editingId = id;
+  dateInput.value = entry.date;
+  textInput.value = entry.text;
+  saveBtn.textContent = "更新する";
+  cancelBtn.style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function removeEntry(id) {
+  if (!confirm("この日記を削除しますか？")) return;
+  saveEntries(loadEntries().filter((e) => e.id !== id));
+  if (editingId === id) resetForm();
+  renderList();
+}
+
+async function handleSave() {
+  const date = dateInput.value;
+  const text = textInput.value.trim();
+
+  if (!date) {
+    alert("日付を入れてください");
+    return;
+  }
+  if (!text) {
+    alert("本文を入れてください");
+    return;
+  }
+
+  const entries = loadEntries();
+  let saved;
+
+  if (editingId !== null) {
+    saved = entries.find((e) => e.id === editingId);
+    if (saved) {
+      saved.date = date;
+      saved.text = text;
+    }
+  } else {
+    saved = { id: Date.now(), date, text };
+    entries.push(saved);
+  }
+
+  saveEntries(entries);
+  resetForm();
+  renderList();
+
+  const words = await getTokishigeComment(saved);
+  showComment(words);
+}
+
+saveBtn.addEventListener("click", handleSave);
+cancelBtn.addEventListener("click", resetForm);
+
+resetForm();
+renderList();
+</script>
+
+</body>
+</html>
