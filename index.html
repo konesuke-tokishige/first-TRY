@@ -246,6 +246,43 @@
     padding: 2rem 0;
     letter-spacing: 0.1em;
   }
+
+  /* ---- バックアップ ---- */
+  .backup {
+    margin-top: 2rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .backup-title {
+    font-size: 0.8rem;
+    color: var(--sumi-light);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.6rem;
+  }
+
+  .backup-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .btn-quiet {
+    flex: 1;
+    min-height: 44px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    color: var(--sumi-light);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .btn-quiet:active {
+    background: var(--kinari-dark);
+    color: var(--sumi);
+  }
 </style>
 </head>
 <body>
@@ -278,6 +315,16 @@
   <!-- 一覧 -->
   <h2>これまでの日記</h2>
   <section id="list"></section>
+
+  <!-- バックアップ -->
+  <section class="backup">
+    <p class="backup-title">バックアップ</p>
+    <div class="backup-row">
+      <button class="btn-quiet" id="exportBtn">書き出す</button>
+      <button class="btn-quiet" id="importBtn">読み込む</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+  </section>
 </main>
 
 <script>
@@ -486,6 +533,92 @@ async function handleSave() {
   const words = await getTokishigeComment(saved);
   showComment(words);
 }
+
+/* =========================================================
+ * バックアップ (書き出し / 読み込み)
+ * ========================================================= */
+
+const exportBtn = document.getElementById("exportBtn");
+const importBtn = document.getElementById("importBtn");
+const importFile = document.getElementById("importFile");
+
+function handleExport() {
+  const entries = loadEntries();
+  if (entries.length === 0) {
+    alert("書き出す日記がありません");
+    return;
+  }
+  const blob = new Blob([JSON.stringify(entries, null, 2)], {
+    type: "application/json",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `diary-backup-${todayString()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function handleImport(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let imported;
+    try {
+      imported = JSON.parse(reader.result);
+    } catch (e) {
+      alert("読み込めませんでした。書き出したJSONファイルを選んでください");
+      return;
+    }
+    if (!Array.isArray(imported)) {
+      alert("読み込めませんでした。書き出したJSONファイルを選んでください");
+      return;
+    }
+
+    const entries = loadEntries();
+    const existing = new Set(entries.map((e) => `${e.date}\n${e.text}`));
+    const usedIds = new Set(entries.map((e) => e.id));
+    let added = 0;
+    let skipped = 0;
+
+    for (const item of imported) {
+      if (!item || typeof item.date !== "string" || typeof item.text !== "string") {
+        continue;
+      }
+      const key = `${item.date}\n${item.text}`;
+      if (existing.has(key)) {
+        skipped++;
+        continue;
+      }
+      let id = typeof item.id === "number" ? item.id : Date.now();
+      while (usedIds.has(id)) id++;
+      usedIds.add(id);
+      existing.add(key);
+      entries.push({ id, date: item.date, text: item.text });
+      added++;
+    }
+
+    saveEntries(entries);
+    renderList();
+    alert(
+      skipped > 0
+        ? `${added}件を読み込みました（重複${skipped}件はスキップ）`
+        : `${added}件を読み込みました`
+    );
+  };
+  reader.readAsText(file);
+}
+
+exportBtn.addEventListener("click", handleExport);
+
+importBtn.addEventListener("click", () => {
+  if (!confirm("読み込んだ日記は、現在の日記に追加されます。よろしいですか？")) return;
+  importFile.value = "";
+  importFile.click();
+});
+
+importFile.addEventListener("change", () => {
+  const file = importFile.files[0];
+  if (file) handleImport(file);
+});
 
 saveBtn.addEventListener("click", handleSave);
 cancelBtn.addEventListener("click", resetForm);
