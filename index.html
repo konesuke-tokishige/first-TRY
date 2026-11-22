@@ -9,12 +9,16 @@
   :root {
     --sumi: #2b2b2b;        /* 墨色 */
     --sumi-light: #4a4a48;
+    --sumi-faint: #7a756b;
     --kinari: #f5f0e6;      /* 生成り */
     --kinari-dark: #ece4d4;
+    --paper: #fffdf8;
     --aka: #8e2f38;         /* 深い赤 */
     --aka-dark: #6f232b;
     --kon: #1B2333;         /* 濃紺 (軍服の黒紺) */
+    --kon-light: #2c3a52;
     --line: #d8cfbc;
+    --gold: #c9b8a3;
   }
 
   * {
@@ -24,9 +28,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html {
-    font-size: 17px;
-  }
+  html { font-size: 17px; }
 
   body {
     font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
@@ -36,24 +38,36 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* ---- ヘッダーとタブ ---- */
   header {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background: var(--kon);
     color: var(--kinari);
-    text-align: center;
-    padding: calc(env(safe-area-inset-top) + 1rem) 1rem 1rem;
-    letter-spacing: 0.3em;
+    padding: calc(env(safe-area-inset-top) + 0.8rem) 1rem 0;
+    border-bottom: 3px solid var(--aka);
+  }
+
+  .head-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding-bottom: 0.6rem;
   }
 
   header h1 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 600;
+    letter-spacing: 0.3em;
   }
 
   #settingsBtn {
     position: absolute;
-    right: 0.8rem;
-    bottom: 0.45rem;
+    right: -0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
     width: 44px;
     height: 44px;
     font-size: 1.25rem;
@@ -64,8 +78,29 @@
     opacity: 0.75;
   }
 
-  #settingsBtn:active {
-    opacity: 1;
+  .tabs {
+    display: flex;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .tab {
+    flex: 1;
+    min-height: 44px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    cursor: pointer;
+  }
+
+  .tab.active {
+    color: var(--kinari);
+    border-bottom-color: var(--kinari);
   }
 
   main {
@@ -74,9 +109,12 @@
     padding: 1rem;
   }
 
-  /* ---- 入力フォーム ---- */
+  .view { display: none; }
+  .view.active { display: block; animation: fadein 0.25s ease; }
+
+  /* ---- 共通部品 ---- */
   .card {
-    background: #fffdf8;
+    background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 1rem;
@@ -92,6 +130,10 @@
   }
 
   input[type="date"],
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select,
   textarea {
     width: 100%;
     font-family: inherit;
@@ -101,10 +143,10 @@
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 0.7rem;
+    margin-bottom: 0.9rem;
   }
 
-  input[type="date"] {
-    margin-bottom: 0.9rem;
+  input[type="date"], input[type="text"], input[type="password"], input[type="number"], select {
     min-height: 48px;
     -webkit-appearance: none;
     appearance: none;
@@ -120,7 +162,6 @@
     display: block;
     width: 100%;
     min-height: 52px;
-    margin-top: 0.9rem;
     font-family: inherit;
     font-size: 1.1rem;
     letter-spacing: 0.2em;
@@ -130,74 +171,43 @@
     border-radius: 8px;
     cursor: pointer;
   }
+  .btn:active { background: var(--aka-dark); }
+  .btn:disabled { background: #b7ab9a; }
+  .btn-sub { background: var(--sumi-light); }
+  .btn-sub:active { background: var(--sumi); }
 
-  .btn:active {
-    background: var(--aka-dark);
-  }
+  .btn-row { display: flex; gap: 0.6rem; }
 
-  .btn-sub {
-    background: var(--sumi-light);
-  }
-
-  .btn-sub:active {
-    background: var(--sumi);
-  }
-
-  .btn-row {
-    display: flex;
-    gap: 0.6rem;
-  }
-
-  .btn-row .btn {
-    margin-top: 0.9rem;
-  }
-
-  /* ---- 時重の一言 ---- */
-  #comment {
-    display: none;
-    background: var(--kon);
-    color: var(--kinari);
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 1.2rem;
-    line-height: 1.8;
-  }
-
-  #comment.show {
-    display: block;
-    animation: fadein 0.5s ease;
-  }
-
-  #comment .who,
-  .entry-comment .who {
-    font-size: 0.8rem;
-    color: #c9b8a3;
-    letter-spacing: 0.2em;
-    margin-bottom: 0.3rem;
-  }
-
-  #comment .words,
-  .entry-comment .words {
-    border-left: 3px solid var(--aka);
-    padding-left: 0.7rem;
-  }
-
-  .entry-comment {
-    background: var(--kon);
-    color: var(--kinari);
+  .btn-small {
+    min-height: 40px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--sumi);
+    background: var(--kinari);
+    border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 0.8rem;
+    padding: 0 0.6rem;
+    cursor: pointer;
+  }
+  .btn-small:active { background: var(--kinari-dark); }
+  .btn-small:disabled { color: #aaa; }
+  .btn-small.danger { color: var(--aka); border-color: #d6a8ad; }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
     margin-top: 0.9rem;
-    font-size: 0.95rem;
-    line-height: 1.7;
   }
 
-  @keyframes fadein {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: none; }
+  .note {
+    font-size: 0.8rem;
+    color: var(--sumi-faint);
+    line-height: 1.6;
+    margin: -0.5rem 0 0.9rem;
   }
 
-  /* ---- 一覧 ---- */
   h2 {
     font-size: 1rem;
     letter-spacing: 0.25em;
@@ -207,8 +217,88 @@
     margin-bottom: 0.8rem;
   }
 
+  .empty {
+    text-align: center;
+    color: var(--sumi-light);
+    padding: 2rem 0;
+    letter-spacing: 0.1em;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---- 時重の言葉 ---- */
+  .voice {
+    background: var(--kon);
+    color: var(--kinari);
+    border-radius: 8px;
+    padding: 0.8rem 0.9rem;
+    margin-top: 0.9rem;
+    line-height: 1.8;
+  }
+  .voice .who {
+    font-size: 0.78rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.3rem;
+  }
+  .voice .words {
+    border-left: 3px solid var(--aka);
+    padding-left: 0.7rem;
+    white-space: pre-wrap;
+  }
+  .voice .meta {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: #9aa3b5;
+    line-height: 1.5;
+  }
+  .voice.pending .words { color: #b9c0ce; letter-spacing: 0.2em; }
+  .voice.error {
+    background: #f7e8e6;
+    color: var(--aka-dark);
+    border: 1px solid #d6a8ad;
+  }
+  .voice.error .who { color: var(--aka); }
+  .voice.error .words { border-left-color: var(--aka); font-size: 0.9rem; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    border: 1px solid #4b5770;
+    border-radius: 4px;
+    padding: 0 0.35rem;
+    margin-left: 0.4rem;
+  }
+
+  /* 日記の下のやり取り */
+  .mine {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    margin-top: 0.9rem;
+    margin-left: 1.6rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .mine .who {
+    font-size: 0.78rem;
+    color: var(--sumi-faint);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.2rem;
+  }
+
+  .reply-box { margin-top: 0.9rem; }
+  .reply-box textarea { min-height: 4.5rem; margin-bottom: 0.5rem; }
+
+  /* ---- 一覧 ---- */
   .entry {
-    background: #fffdf8;
+    background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 10px;
     margin-bottom: 0.8rem;
@@ -232,12 +322,7 @@
     cursor: pointer;
   }
 
-  .entry-date {
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
-
+  .entry-date { font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
   .entry-preview {
     flex: 1;
     font-size: 0.9rem;
@@ -246,24 +331,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .entry-mark { font-size: 0.75rem; color: var(--aka); white-space: nowrap; }
+  .entry-arrow { color: var(--aka); transition: transform 0.2s; }
+  .entry.open .entry-arrow { transform: rotate(90deg); }
 
-  .entry-arrow {
-    color: var(--aka);
-    transition: transform 0.2s;
-  }
-
-  .entry.open .entry-arrow {
-    transform: rotate(90deg);
-  }
-
-  .entry-body {
-    display: none;
-    padding: 0 1rem 1rem;
-  }
-
-  .entry.open .entry-body {
-    display: block;
-  }
+  .entry-body { display: none; padding: 0 1rem 1rem; }
+  .entry.open .entry-body { display: block; }
 
   .entry-text {
     white-space: pre-wrap;
@@ -272,32 +345,29 @@
     padding-top: 0.8rem;
   }
 
-  .empty {
-    text-align: center;
-    color: var(--sumi-light);
-    padding: 2rem 0;
-    letter-spacing: 0.1em;
+  /* ---- 時重の帳面 ---- */
+  .tdiary {
+    background: var(--kon);
+    color: var(--kinari);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.9rem;
+    line-height: 1.9;
   }
+  .tdiary .t-date {
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+  .tdiary .t-text { white-space: pre-wrap; }
+  .tdiary .meta { margin-top: 0.6rem; font-size: 0.72rem; color: #9aa3b5; }
+  .tdiary .btn-small { margin-top: 0.7rem; background: transparent; color: var(--gold); border-color: #4b5770; }
 
   /* ---- バックアップ ---- */
-  .backup {
-    margin-top: 2rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .backup-title {
-    font-size: 0.8rem;
-    color: var(--sumi-light);
-    letter-spacing: 0.2em;
-    margin-bottom: 0.6rem;
-  }
-
-  .backup-row {
-    display: flex;
-    gap: 0.6rem;
-  }
-
+  .backup { margin-top: 2rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
+  .backup-title { font-size: 0.8rem; color: var(--sumi-light); letter-spacing: 0.2em; margin-bottom: 0.6rem; }
+  .backup-row { display: flex; gap: 0.6rem; }
   .btn-quiet {
     flex: 1;
     min-height: 44px;
@@ -310,168 +380,185 @@
     border-radius: 8px;
     cursor: pointer;
   }
+  .btn-quiet:active { background: var(--kinari-dark); color: var(--sumi); }
 
-  .btn-quiet:active {
-    background: var(--kinari-dark);
-    color: var(--sumi);
-  }
-
-  /* ---- 設定画面 ---- */
+  /* ---- 設定 ---- */
   #settings {
     display: none;
-  }
-
-  #settings.open {
-    display: block;
-  }
-
-  #settings h2 {
-    margin-top: 0.4rem;
-  }
-
-  #settings select {
-    width: 100%;
-    font-family: inherit;
-    font-size: 1.05rem;
-    color: var(--sumi);
+    position: fixed;
+    inset: 0;
+    z-index: 20;
     background: var(--kinari);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 0.7rem;
-    min-height: 48px;
-    margin-bottom: 0.9rem;
-    -webkit-appearance: none;
-    appearance: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-
-  #settings input[type="password"],
-  #settings input[type="text"] {
-    width: 100%;
+  #settings.open { display: block; }
+  #settings .s-head {
+    position: sticky;
+    top: 0;
+    background: var(--kon);
+    color: var(--kinari);
+    padding: calc(env(safe-area-inset-top) + 0.9rem) 1rem 0.9rem;
+    border-bottom: 3px solid var(--aka);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    letter-spacing: 0.2em;
+  }
+  #settings .s-head button {
     font-family: inherit;
-    font-size: 1.05rem;
-    color: var(--sumi);
-    background: var(--kinari);
-    border: 1px solid var(--line);
+    font-size: 0.85rem;
+    color: var(--kinari);
+    background: var(--kon-light);
+    border: 1px solid #4b5770;
     border-radius: 8px;
-    padding: 0.7rem;
-    min-height: 48px;
-    margin-bottom: 0.9rem;
+    padding: 0.5rem 0.8rem;
   }
-
-  #settings textarea {
-    min-height: 7rem;
-    margin-bottom: 0.9rem;
+  #settings .s-body {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1rem 1rem calc(env(safe-area-inset-bottom) + 2rem);
   }
-
-  .settings-note {
-    font-size: 0.8rem;
-    color: var(--sumi-light);
-    line-height: 1.6;
-    margin-bottom: 0.9rem;
-  }
+  .s-sec { margin-bottom: 1.6rem; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>日記帳</h1>
-  <button id="settingsBtn" aria-label="設定">&#9881;</button>
+  <div class="head-row">
+    <h1>日記帳</h1>
+    <button id="settingsBtn" aria-label="設定">&#9881;</button>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-view="write">書く</button>
+    <button class="tab" data-view="list">これまで</button>
+    <button class="tab" data-view="tdiary">時重の帳面</button>
+  </nav>
 </header>
 
 <main>
-  <!-- 設定画面 -->
-  <section id="settings" class="card">
-    <h2>設定</h2>
+  <!-- 書く -->
+  <section class="view active" id="view-write">
+    <div class="card">
+      <label for="date">日付</label>
+      <input type="date" id="date">
 
-    <label for="aiProvider">AI会社</label>
-    <select id="aiProvider">
-      <option value="none">使わない</option>
-      <option value="claude">Claude</option>
-      <option value="openai">OpenAI</option>
-      <option value="gemini">Gemini</option>
-    </select>
+      <label for="text">本文</label>
+      <textarea id="text" placeholder="今日あったことを書く"></textarea>
 
-    <label for="modelSelect">モデル</label>
-    <select id="modelSelect"></select>
+      <div class="btn-row">
+        <button class="btn" id="saveBtn">保存する</button>
+        <button class="btn btn-sub" id="cancelBtn" style="display:none">やめる</button>
+      </div>
+    </div>
+    <div id="latest"></div>
+  </section>
 
-    <label for="modelCustom">モデル名を自由入力で上書き（空欄なら上の選択を使用）</label>
-    <input type="text" id="modelCustom" autocapitalize="off" autocorrect="off"
-           placeholder="例: 新しいモデル名">
+  <!-- これまで -->
+  <section class="view" id="view-list">
+    <h2>これまでの日記</h2>
+    <div id="list"></div>
 
-    <label for="apiKeyClaude">Claude APIキー</label>
-    <input type="password" id="apiKeyClaude" autocomplete="off" placeholder="sk-ant-...">
-
-    <label for="apiKeyOpenai">OpenAI APIキー</label>
-    <input type="password" id="apiKeyOpenai" autocomplete="off" placeholder="sk-...">
-
-    <label for="apiKeyGemini">Gemini APIキー</label>
-    <input type="password" id="apiKeyGemini" autocomplete="off" placeholder="AIza...">
-
-    <label for="persona">人格設定文（system プロンプトとして送信）</label>
-    <textarea id="persona" placeholder="時重の人格設定文を貼り付け"></textarea>
-
-    <p class="settings-note">
-      設定とAPIキーはこの端末のlocalStorageにのみ保存され、日記の書き出しファイルには含まれません。
-      API未設定・通信失敗時は、従来のランダムな一言に自動で切り替わります。
-    </p>
-
-    <div class="btn-row">
-      <button class="btn" id="saveSettingsBtn">設定を保存</button>
-      <button class="btn btn-sub" id="closeSettingsBtn">閉じる</button>
+    <div class="backup">
+      <p class="backup-title">バックアップ</p>
+      <div class="backup-row">
+        <button class="btn-quiet" id="exportBtn">書き出す</button>
+        <button class="btn-quiet" id="importBtn">読み込む</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
   </section>
 
-  <!-- 入力フォーム -->
-  <section class="card">
-    <label for="date">日付</label>
-    <input type="date" id="date">
-
-    <label for="text">本文</label>
-    <textarea id="text" placeholder="今日あったことを書く"></textarea>
-
-    <div class="btn-row">
-      <button class="btn" id="saveBtn">保存する</button>
-      <button class="btn btn-sub" id="cancelBtn" style="display:none">やめる</button>
-    </div>
-  </section>
-
-  <!-- 時重の一言 -->
-  <section id="comment" aria-live="polite">
-    <div class="who">時重</div>
-    <div class="words" id="commentWords"></div>
-  </section>
-
-  <!-- 一覧 -->
-  <h2>これまでの日記</h2>
-  <section id="list"></section>
-
-  <!-- バックアップ -->
-  <section class="backup">
-    <p class="backup-title">バックアップ</p>
-    <div class="backup-row">
-      <button class="btn-quiet" id="exportBtn">書き出す</button>
-      <button class="btn-quiet" id="importBtn">読み込む</button>
-    </div>
-    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+  <!-- 時重の帳面 -->
+  <section class="view" id="view-tdiary">
+    <h2>時重の帳面</h2>
+    <p class="note" style="margin-top:0">「これまで」の日記を開いて「帳面に書かせる」を押すと、時重がその日のことを自分の目線で書き残します。</p>
+    <div id="tdiaryList"></div>
   </section>
 </main>
+
+<!-- 設定 -->
+<section id="settings">
+  <div class="s-head">
+    <span>設定</span>
+    <button id="closeSettingsBtn">閉じる</button>
+  </div>
+  <div class="s-body">
+    <div class="s-sec">
+      <h2>AI</h2>
+      <label for="aiProvider">AI会社</label>
+      <select id="aiProvider">
+        <option value="none">使わない</option>
+        <option value="claude">Claude</option>
+        <option value="openai">OpenAI</option>
+        <option value="gemini">Gemini</option>
+      </select>
+
+      <label for="modelSelect">モデル</label>
+      <select id="modelSelect"></select>
+
+      <label for="modelCustom">モデル名を自由入力で上書き（空欄なら上の選択を使用）</label>
+      <input type="text" id="modelCustom" autocapitalize="off" autocorrect="off" placeholder="例: 新しいモデル名">
+
+      <label for="effortSelect">エフォート（どれだけ深く考えて書くか）</label>
+      <select id="effortSelect"></select>
+      <p class="note" id="effortNote"></p>
+
+      <div id="thinkingBox">
+        <label for="thinkingSelect">思考（Claude）</label>
+        <select id="thinkingSelect">
+          <option value="">指定しない（モデルの標準）</option>
+          <option value="adaptive">考える（adaptive thinking）</option>
+        </select>
+        <p class="note">Opus 5.5とFable 5.2は常に考えるので、ここは関係ありません。Opus 4.6〜4.8でエフォートを効かせたい時は「考える」にしてください。</p>
+      </div>
+    </div>
+
+    <div class="s-sec">
+      <h2>APIキー</h2>
+      <label for="apiKeyClaude">Claude APIキー</label>
+      <input type="password" id="apiKeyClaude" autocomplete="off" placeholder="sk-ant-...">
+      <label for="apiKeyOpenai">OpenAI APIキー</label>
+      <input type="password" id="apiKeyOpenai" autocomplete="off" placeholder="sk-...">
+      <label for="apiKeyGemini">Gemini APIキー</label>
+      <input type="password" id="apiKeyGemini" autocomplete="off" placeholder="AIza...">
+      <p class="note">設定とAPIキーはこの端末にのみ保存され、日記の書き出しファイルには含まれません。</p>
+    </div>
+
+    <div class="s-sec">
+      <h2>時重</h2>
+      <label for="persona">人格設定文（system プロンプトとして送信）</label>
+      <textarea id="persona" placeholder="時重の人格設定文を貼り付け"></textarea>
+      <p class="note" id="personaCount"></p>
+
+      <label for="replyLength">返事の長さ</label>
+      <select id="replyLength">
+        <option value="short">ひとこと（3文以内）</option>
+        <option value="medium">ふつう（数段落まで）</option>
+        <option value="letter">手紙（長めに）</option>
+      </select>
+
+      <label for="contextCount">一緒に渡す、最近の日記の数</label>
+      <input type="number" id="contextCount" min="0" max="30" inputmode="numeric">
+      <p class="note">その日より前の日記を、新しい順にこの数だけ、時重の返事ややり取りと一緒に渡します。0にすると、その日の日記だけを読みます。</p>
+
+      <label for="maxTokens">返事の長さの上限（max_tokens）</label>
+      <input type="number" id="maxTokens" min="256" inputmode="numeric">
+      <p class="note">考える分もここに含まれます。返事が途中で切れる時は上げてください。</p>
+
+      <label for="tdiaryPrompt">時重の帳面を書かせる時の依頼文</label>
+      <textarea id="tdiaryPrompt"></textarea>
+    </div>
+
+    <button class="btn" id="saveSettingsBtn">設定を保存</button>
+  </div>
+</section>
 
 <script>
 "use strict";
 
 /* =========================================================
- * 時重の一言
- * ---------------------------------------------------------
- * 将来 Claude API に差し替える箇所。
- * getTokishigeComment() だけを書き換えれば、他のコードは
- * 一切変更せずに AI の返答へ移行できるよう、非同期関数として
- * 独立させている。
- *
- * API 移行時の方針:
- *   - API キーはコードに直書きしない。ユーザーが設定画面等で
- *     入力したものを localStorage 等に保持するか、キーを預かる
- *     中継サーバーを経由する。
- *   - シグネチャ (entry を受け取り文字列を resolve する) は維持する。
+ * 作り置きの一言 (AIを使わない時だけ使う)
  * ========================================================= */
 
 const TOKISHIGE_LINES = [
@@ -488,26 +575,46 @@ function randomTokishigeLine() {
 }
 
 /* =========================================================
- * 設定 (localStorage)
- * APIキーは localStorage にのみ保存し、コードには埋め込まない。
- * 書き出しJSONにも含めない (日記とは別キーで管理)。
+ * 定数と設定
  * ========================================================= */
 
+const STORAGE_KEY = "diary-entries";
+const TDIARY_KEY = "diary-tokishige";
 const SETTINGS_KEY = "diary-settings";
+const AI_TIMEOUT_MS = 180000; // 考えてから書くモデルもあるので長めに待つ
 
 const AI_PROVIDERS = {
   claude: {
     label: "Claude",
-    models: ["claude-opus-4-8", "claude-sonnet-5", "claude-haiku-4-5"],
+    models: ["claude-opus-5-5", "claude-sonnet-5-5", "claude-fable-5-2", "claude-fable-5-1", "claude-fable-5",
+             "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-haiku-5-5"],
+    efforts: ["", "low", "medium", "high", "xhigh", "max"],
+    effortNote: "Claudeの output_config.effort です。モデルの標準はOpus 5.5とHaiku 5.5がmedium、他はhigh。xhighはOpus 4.6には無く、選ぶとエラーになります。",
   },
   openai: {
     label: "OpenAI",
-    models: ["gpt-5.1", "gpt-5-mini", "gpt-4o"],
+    models: ["gpt-6.2-sol", "gpt-6-sol", "gpt-5.6-sol", "gpt-5.5-2026-04-23"],
+    efforts: ["", "minimal", "low", "medium", "high"],
+    effortNote: "OpenAIの reasoning_effort です。使える値はモデルによって違います。エラーになったら「指定しない」に戻してください。",
   },
   gemini: {
     label: "Gemini",
-    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-3-pro-preview"],
+    models: ["gemini-4-carbon", "gemini-4-neon", "gemini-4-hydrogen", "gemini-4-argon",
+             "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.1-pro-preview"],
+    efforts: ["", "minimal", "low", "medium", "high"],
+    effortNote: "Geminiの thinkingConfig.thinkingLevel です。使える値はモデルによって違います。エラーになったら「指定しない」に戻してください。",
   },
+};
+
+const DEFAULT_TDIARY_PROMPT =
+  "〔帳面〕今日の誠子の日記と、それへの自分の返事ややり取りを踏まえて、今日のことを僕自身の帳面に書き残す。" +
+  "僕の一人称で、僕が見たこと、感じたこと、読めなかったことを書く。誠子を読み切ったように断定しない。" +
+  "見出しや箇条書きは使わず、帳面の本文だけを書く。";
+
+const REPLY_LENGTH_RULES = {
+  short: "返事は3文以内。",
+  medium: "返事は数段落まで。",
+  letter: "返事は手紙のように、気持ちを込めて長めに書いてよい。",
 };
 
 function defaultSettings() {
@@ -521,58 +628,231 @@ function defaultSettings() {
       gemini: AI_PROVIDERS.gemini.models[0],
     },
     customModels: { claude: "", openai: "", gemini: "" },
+    efforts: { claude: "", openai: "", gemini: "" },
+    thinking: "",
+    replyLength: "short",
+    contextCount: 5,
+    maxTokens: 8000,
+    tdiaryPrompt: DEFAULT_TDIARY_PROMPT,
   };
 }
 
 function loadSettings() {
   const base = defaultSettings();
+  let saved = {};
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return base;
-    const saved = JSON.parse(raw);
-    return {
-      ...base,
-      ...saved,
-      apiKeys: { ...base.apiKeys, ...(saved.apiKeys || {}) },
-      models: { ...base.models, ...(saved.models || {}) },
-      customModels: { ...base.customModels, ...(saved.customModels || {}) },
-    };
+    saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
   } catch (e) {
-    return base;
+    saved = {};
   }
+  const s = {
+    ...base,
+    ...saved,
+    apiKeys: { ...base.apiKeys, ...(saved.apiKeys || {}) },
+    models: { ...base.models, ...(saved.models || {}) },
+    customModels: { ...base.customModels, ...(saved.customModels || {}) },
+    efforts: { ...base.efforts, ...(saved.efforts || {}) },
+  };
+  // 一覧から消えた古いモデルは、一覧の先頭に戻す(自由入力の欄はそのまま)
+  for (const p of Object.keys(AI_PROVIDERS)) {
+    if (!AI_PROVIDERS[p].models.includes(s.models[p])) s.models[p] = AI_PROVIDERS[p].models[0];
+    if (!AI_PROVIDERS[p].efforts.includes(s.efforts[p])) s.efforts[p] = "";
+  }
+  if (!REPLY_LENGTH_RULES[s.replyLength]) s.replyLength = "short";
+  if (!(s.contextCount >= 0)) s.contextCount = 5;
+  if (!(s.maxTokens >= 256)) s.maxTokens = 8000;
+  if (typeof s.tdiaryPrompt !== "string" || !s.tdiaryPrompt.trim()) s.tdiaryPrompt = DEFAULT_TDIARY_PROMPT;
+  if (s.thinking !== "adaptive") s.thinking = "";
+  return s;
 }
 
 function saveSettings(settings) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  return safeSetItem(SETTINGS_KEY, settings);
+}
+
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    alert("この端末の保存領域がいっぱいで、保存できませんでした。\n書き出しでバックアップを取ってから、古い日記を整理してください。");
+    return false;
+  }
+}
+
+function effectiveModel(settings, provider) {
+  const custom = (settings.customModels[provider] || "").trim();
+  return custom || settings.models[provider];
 }
 
 /* =========================================================
- * AI 呼び出し (会社ごとに関数を分離)
- * system = 人格設定文 / user = 日記本文
+ * データ (日記と、時重の帳面)
+ *
+ * entry = { id, date, text, comment, status, model, usage, error,
+ *           replies: [{ role: "user" | "assistant", text, ts, model, usage }],
+ *           replyError }
+ * status: "ai"      AIの返事
+ *         "preset"  AIを使わない設定の時の、作り置きの一言
+ *         "legacy"  改修前に書かれた返事(AIか作り置きかは不明)
+ *         "pending" 返事を待っている
+ *         "error"   返事をもらえなかった
+ *         "none"    まだ返事がない
  * ========================================================= */
 
-const AI_TIMEOUT_MS = 30000;
-
-function buildSystemPrompt(persona) {
-  const base = persona && persona.trim()
-    ? persona.trim()
-    : "あなたは日記アプリの相棒として、書かれた日記に一言コメントを返します。";
-  return base + "\n\n返答は必ず3文以内で、コメント本文のみを返すこと。";
+function loadEntries() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return Array.isArray(raw) ? raw.map(normalizeEntry) : [];
+  } catch (e) {
+    return [];
+  }
 }
+
+function normalizeEntry(e) {
+  const entry = { ...e };
+  if (typeof entry.comment !== "string") entry.comment = "";
+  if (!entry.status) entry.status = entry.comment ? "legacy" : "none";
+  if (!Array.isArray(entry.replies)) entry.replies = [];
+  return entry;
+}
+
+function saveEntries(entries) {
+  return safeSetItem(STORAGE_KEY, entries);
+}
+
+function findEntry(entries, id) {
+  return entries.find((e) => e.id === id);
+}
+
+function loadTdiary() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TDIARY_KEY));
+    return Array.isArray(raw) ? raw : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveTdiary(list) {
+  return safeSetItem(TDIARY_KEY, list);
+}
+
+/* =========================================================
+ * AIに渡す中身
+ * ========================================================= */
+
+function buildSystemPrompt(settings) {
+  const persona = settings.persona && settings.persona.trim()
+    ? settings.persona.trim()
+    : "あなたは日記アプリの相棒として、書かれた日記に返事をします。";
+  return persona + "\n\n" +
+    "【この場について】\n" +
+    "ここは日記帳。書き手の日記は【日記 日付】の注記つきで、日記へのやり取りは【返事】の注記つきで届く。" +
+    "注記そのものを返答で繰り返さず、本文だけを返す。\n" +
+    REPLY_LENGTH_RULES[settings.replyLength];
+}
+
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${y}年${Number(m)}月${Number(d)}日`;
+}
+
+function sortAsc(entries) {
+  return entries.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id));
+}
+
+function hasUsableComment(e) {
+  return !!e.comment && (e.status === "ai" || e.status === "legacy");
+}
+
+/* 一つの日記の流れ(日記 → 返事 → やり取り)を、会話の形にする */
+function entryTurns(e, { withThread }) {
+  const turns = [{ role: "user", content: `【日記 ${formatDate(e.date)}】\n${e.text}` }];
+  if (!withThread) return turns;
+  if (hasUsableComment(e)) turns.push({ role: "assistant", content: e.comment });
+  for (const r of e.replies) {
+    turns.push(r.role === "user"
+      ? { role: "user", content: `【返事】\n${r.text}` }
+      : { role: "assistant", content: r.text });
+  }
+  return turns;
+}
+
+/* その日記より前の、最近の日記 */
+function contextEntries(entries, target, count) {
+  if (!count) return [];
+  const asc = sortAsc(entries);
+  const before = asc.filter((e) =>
+    e.id !== target.id && (e.date < target.date || (e.date === target.date && e.id < target.id)));
+  return before.slice(-count);
+}
+
+/* mode: "comment" 日記への返事 / "reply" やり取りの続き / "tdiary" 時重の帳面 */
+function buildMessages(entries, target, mode, settings) {
+  let turns = [];
+  for (const e of contextEntries(entries, target, settings.contextCount)) {
+    turns = turns.concat(entryTurns(e, { withThread: true }));
+  }
+  turns = turns.concat(entryTurns(target, { withThread: mode !== "comment" }));
+  if (mode === "tdiary") turns.push({ role: "user", content: settings.tdiaryPrompt });
+
+  // 同じ役が続いたら一つにまとめる。先頭は必ず書き手の側にする
+  const out = [];
+  for (const t of turns) {
+    if (out.length && out[out.length - 1].role === t.role) {
+      out[out.length - 1].content += "\n\n" + t.content;
+    } else {
+      out.push({ ...t });
+    }
+  }
+  while (out.length && out[0].role !== "user") out.shift();
+  return out;
+}
+
+/* =========================================================
+ * AI 呼び出し
+ * 返り値: { text, usage: {input, cacheRead, cacheWrite, output}, truncated }
+ * ========================================================= */
 
 async function fetchJson(url, options) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let res;
+    try {
+      res = await fetch(url, { ...options, signal: controller.signal });
+    } catch (e) {
+      if (e.name === "AbortError") throw new Error(`${AI_TIMEOUT_MS / 1000}秒待っても返事が来ませんでした`);
+      throw new Error("通信できませんでした(電波やAPIキーを確かめてください)");
+    }
+    if (!res.ok) {
+      const t = await res.text();
+      let detail = t;
+      try {
+        const j = JSON.parse(t);
+        detail = (j.error && (j.error.message || j.error.type)) || t;
+      } catch (e) { /* そのまま */ }
+      throw new Error(`APIエラー (${res.status}): ${String(detail).slice(0, 300)}`);
+    }
     return await res.json();
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function callClaude(apiKey, model, system, userText) {
+async function callClaude(apiKey, model, system, messages, settings) {
+  const cc = { type: "ephemeral" };
+  const msgs = messages.map((m, i) => i === messages.length - 1
+    ? { role: m.role, content: [{ type: "text", text: m.content, cache_control: cc }] }
+    : m);
+  const body = {
+    model,
+    max_tokens: settings.maxTokens,
+    system: [{ type: "text", text: system, cache_control: cc }],
+    messages: msgs,
+  };
+  if (settings.efforts.claude) body.output_config = { effort: settings.efforts.claude };
+  if (settings.thinking === "adaptive") body.thinking = { type: "adaptive" };
   const data = await fetchJson("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -581,124 +861,82 @@ async function callClaude(apiKey, model, system, userText) {
       "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true",
     },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1024,
-      system,
-      messages: [{ role: "user", content: userText }],
-    }),
+    body: JSON.stringify(body),
   });
-  const block = (data.content || []).find((b) => b.type === "text");
-  return block ? block.text : "";
+  const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+  const u = data.usage || {};
+  return {
+    text,
+    usage: {
+      input: u.input_tokens || 0,
+      cacheRead: u.cache_read_input_tokens || 0,
+      cacheWrite: u.cache_creation_input_tokens || 0,
+      output: u.output_tokens || 0,
+    },
+    truncated: data.stop_reason === "max_tokens",
+  };
 }
 
-async function callOpenAI(apiKey, model, system, userText) {
+async function callOpenAI(apiKey, model, system, messages, settings) {
+  const body = { model, messages: [{ role: "system", content: system }].concat(messages) };
+  if (settings.efforts.openai) body.reasoning_effort = settings.efforts.openai;
   const data = await fetchJson("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userText },
-      ],
-    }),
+    headers: { "content-type": "application/json", "authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
   });
-  return data.choices && data.choices[0] && data.choices[0].message
-    ? data.choices[0].message.content
-    : "";
+  const c = data.choices && data.choices[0];
+  const u = data.usage || {};
+  const cached = (u.prompt_tokens_details && u.prompt_tokens_details.cached_tokens) || 0;
+  return {
+    text: (c && c.message && c.message.content) || "",
+    usage: { input: (u.prompt_tokens || 0) - cached, cacheRead: cached, cacheWrite: 0, output: u.completion_tokens || 0 },
+    truncated: !!c && c.finish_reason === "length",
+  };
 }
 
-async function callGemini(apiKey, model, system, userText) {
-  const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(model) + ":generateContent";
-  const data = await fetchJson(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: userText }] }],
-    }),
-  });
+async function callGemini(apiKey, model, system, messages, settings) {
+  const body = {
+    system_instruction: { parts: [{ text: system }] },
+    contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+  };
+  if (settings.efforts.gemini) body.generationConfig = { thinkingConfig: { thinkingLevel: settings.efforts.gemini } };
+  const data = await fetchJson(
+    "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify(body),
+    });
   const cand = data.candidates && data.candidates[0];
-  const part = cand && cand.content && cand.content.parts &&
-    cand.content.parts.find((p) => typeof p.text === "string");
-  return part ? part.text : "";
+  const parts = (cand && cand.content && cand.content.parts) || [];
+  // 考え中の部分(thought: true)は返事に混ぜない
+  const text = parts.filter((p) => !p.thought && typeof p.text === "string").map((p) => p.text).join("");
+  const u = data.usageMetadata || {};
+  const cached = u.cachedContentTokenCount || 0;
+  return {
+    text,
+    usage: { input: (u.promptTokenCount || 0) - cached, cacheRead: cached, cacheWrite: 0, output: u.candidatesTokenCount || 0 },
+    truncated: !!cand && cand.finishReason === "MAX_TOKENS",
+  };
 }
 
 const AI_CALLERS = { claude: callClaude, openai: callOpenAI, gemini: callGemini };
 
-function effectiveModel(settings, provider) {
-  const custom = (settings.customModels[provider] || "").trim();
-  return custom || settings.models[provider];
+function aiReady(settings) {
+  const p = settings.provider;
+  return !!(AI_CALLERS[p] && settings.apiKeys[p] && effectiveModel(settings, p));
 }
 
-/**
- * 保存された日記に対する一言を返す。
- * APIキーと会社が設定されていれば AI の返答を、
- * 未設定・通信失敗時は従来のランダムな一言を返す (エラーで止めない)。
- * @param {{date: string, text: string}} entry 保存された日記
- * @returns {Promise<string>} 表示する一言
- */
-async function getTokishigeComment(entry) {
+async function askTokishige(entries, target, mode) {
   const settings = loadSettings();
-  const caller = AI_CALLERS[settings.provider];
-  const apiKey = settings.apiKeys[settings.provider];
-  const model = caller ? effectiveModel(settings, settings.provider) : "";
-
-  if (caller && apiKey && model) {
-    try {
-      const text = await caller(
-        apiKey, model, buildSystemPrompt(settings.persona), entry.text
-      );
-      if (typeof text === "string" && text.trim()) return text.trim();
-    } catch (e) {
-      // 通信失敗・タイムアウト時はランダムに切り替える
-    }
-  }
-  return randomTokishigeLine();
-}
-
-/* =========================================================
- * データ管理 (localStorage)
- * ========================================================= */
-
-const STORAGE_KEY = "diary-entries";
-
-function loadEntries() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveEntries(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
-/**
- * 一言が保存されていない既存の日記に、ランダムで一つ割り当てて固定する。
- * (一言の保存機能を追加する前に書かれた日記のための移行処理)
- */
-function migrateComments() {
-  const entries = loadEntries();
-  let changed = false;
-  for (const entry of entries) {
-    if (typeof entry.comment !== "string" || entry.comment === "") {
-      entry.comment = randomTokishigeLine();
-      changed = true;
-    }
-  }
-  if (changed) saveEntries(entries);
+  const p = settings.provider;
+  if (!aiReady(settings)) throw new Error("設定でAI会社とAPIキーを入れてください");
+  const model = effectiveModel(settings, p);
+  const r = await AI_CALLERS[p](
+    settings.apiKeys[p], model, buildSystemPrompt(settings), buildMessages(entries, target, mode, settings), settings);
+  const text = (r.text || "").trim();
+  if (!text) throw new Error("返事が空でした");
+  return { text, model, usage: r.usage, truncated: r.truncated };
 }
 
 /* =========================================================
@@ -710,22 +948,238 @@ const textInput = document.getElementById("text");
 const saveBtn = document.getElementById("saveBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const listEl = document.getElementById("list");
-const commentEl = document.getElementById("comment");
-const commentWords = document.getElementById("commentWords");
+const latestEl = document.getElementById("latest");
+const tdiaryListEl = document.getElementById("tdiaryList");
 
-let editingId = null; // 編集中の日記の id。null なら新規作成
+let editingId = null;     // 編集中の日記の id。null なら新規作成
+let latestId = null;      // 「書く」の下に出す日記
+let busy = false;         // AIを待っている間は、他の頼みごとを止める
+const openIds = new Set();
+const replyDrafts = {};   // 送る前の返事の下書き
 
 function todayString() {
   const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function formatDate(iso) {
-  const [y, m, d] = iso.split("-");
-  return `${y}年${Number(m)}月${Number(d)}日`;
+function fmtNum(n) {
+  n = n || 0;
+  return n >= 10000 ? (Math.round(n / 1000) / 10) + "万" : String(n);
 }
+
+function usageText(model, u) {
+  if (!u) return model || "";
+  const parts = ["入力 " + fmtNum(u.input)];
+  if (u.cacheRead) parts.push("キャッシュ読取 " + fmtNum(u.cacheRead));
+  if (u.cacheWrite) parts.push("キャッシュ書込 " + fmtNum(u.cacheWrite));
+  parts.push("出力 " + fmtNum(u.output));
+  return (model ? model + " / " : "") + parts.join(" ・ ");
+}
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function smallBtn(label, onClick, cls) {
+  const b = el("button", "btn-small" + (cls ? " " + cls : ""), label);
+  b.disabled = busy;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+/* 時重の返事の箱 */
+function voiceBox(entry) {
+  const box = el("div", "voice");
+  const who = el("div", "who", "時重");
+  const words = el("div", "words");
+  box.appendChild(who);
+  box.appendChild(words);
+
+  if (entry.status === "pending") {
+    box.classList.add("pending");
+    words.textContent = "……読んでる";
+  } else if (entry.status === "error") {
+    box.classList.add("error");
+    who.textContent = "返事をもらえませんでした";
+    words.textContent = entry.error || "理由はわかりません";
+    const row = el("div", "btn-row");
+    row.style.marginTop = "0.6rem";
+    row.appendChild(smallBtn("もう一度頼む", () => requestComment(entry.id)));
+    box.appendChild(row);
+  } else if (entry.comment) {
+    words.textContent = entry.comment;
+    if (entry.status === "preset") who.appendChild(el("span", "tag", "作り置きの一言"));
+    const metaLines = [];
+    if (entry.status === "ai") metaLines.push(usageText(entry.model, entry.usage));
+    if (entry.truncated) metaLines.push("※返事の長さの上限で途中まで(設定で上げられます)");
+    if (metaLines.length) box.appendChild(el("div", "meta", metaLines.join("\n")));
+  } else {
+    return null;
+  }
+  return box;
+}
+
+/* 日記の下のやり取り */
+function threadNodes(entry) {
+  const nodes = [];
+  for (const r of entry.replies) {
+    if (r.role === "user") {
+      const box = el("div", "mine");
+      box.appendChild(el("div", "who", "わたし"));
+      box.appendChild(document.createTextNode(r.text));
+      nodes.push(box);
+    } else {
+      const box = el("div", "voice");
+      box.appendChild(el("div", "who", "時重"));
+      box.appendChild(el("div", "words", r.text));
+      const metaLines = [usageText(r.model, r.usage)];
+      if (r.truncated) metaLines.push("※返事の長さの上限で途中まで");
+      box.appendChild(el("div", "meta", metaLines.join("\n")));
+      nodes.push(box);
+    }
+  }
+  if (entry.replyPending) {
+    const box = el("div", "voice pending");
+    box.appendChild(el("div", "who", "時重"));
+    box.appendChild(el("div", "words", "……読んでる"));
+    nodes.push(box);
+  }
+  if (entry.replyError) {
+    const box = el("div", "voice error");
+    box.appendChild(el("div", "who", "返事をもらえませんでした"));
+    box.appendChild(el("div", "words", entry.replyError));
+    const row = el("div", "btn-row");
+    row.style.marginTop = "0.6rem";
+    row.appendChild(smallBtn("もう一度頼む", () => requestReply(entry.id)));
+    box.appendChild(row);
+    nodes.push(box);
+  }
+  return nodes;
+}
+
+function replyBox(entry) {
+  const settings = loadSettings();
+  if (!aiReady(settings) || !hasUsableComment(entry)) return null;
+  const last = entry.replies[entry.replies.length - 1];
+  if (entry.replyPending || entry.replyError || (last && last.role === "user")) return null;
+  const box = el("div", "reply-box");
+  const ta = el("textarea");
+  ta.placeholder = "時重に返す";
+  ta.value = replyDrafts[entry.id] || "";
+  ta.addEventListener("input", () => { replyDrafts[entry.id] = ta.value; });
+  const btn = el("button", "btn btn-sub", "返す");
+  btn.disabled = busy;
+  btn.addEventListener("click", () => sendReply(entry.id, ta.value));
+  box.appendChild(ta);
+  box.appendChild(btn);
+  return box;
+}
+
+/* 一つの日記の中身(書く画面の下と、一覧の中で共用) */
+function entryDetail(entry, { withText }) {
+  const frag = document.createDocumentFragment();
+  if (withText) frag.appendChild(el("p", "entry-text", entry.text));
+  const v = voiceBox(entry);
+  if (v) frag.appendChild(v);
+  threadNodes(entry).forEach((n) => frag.appendChild(n));
+  const rb = replyBox(entry);
+  if (rb) frag.appendChild(rb);
+
+  const settings = loadSettings();
+  const actions = el("div", "actions");
+  actions.appendChild(smallBtn("日記を直す", () => startEdit(entry.id)));
+  if (aiReady(settings)) {
+    actions.appendChild(smallBtn(entry.comment ? "返事を書き直す" : "返事をもらう", () => regenerate(entry.id)));
+    actions.appendChild(smallBtn("帳面に書かせる", () => requestTdiary(entry.id)));
+  }
+  actions.appendChild(smallBtn("削除", () => removeEntry(entry.id), "danger"));
+  frag.appendChild(actions);
+  return frag;
+}
+
+function renderLatest() {
+  latestEl.innerHTML = "";
+  if (latestId === null) return;
+  const entry = findEntry(loadEntries(), latestId);
+  if (!entry) return;
+  const card = el("div", "card");
+  card.appendChild(el("div", "entry-date", formatDate(entry.date)));
+  card.appendChild(entryDetail(entry, { withText: true }));
+  latestEl.appendChild(card);
+}
+
+function renderList() {
+  const entries = loadEntries()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+  listEl.innerHTML = "";
+  if (entries.length === 0) {
+    listEl.appendChild(el("p", "empty", "まだ日記がありません"));
+    return;
+  }
+  for (const entry of entries) {
+    const item = el("article", "entry" + (openIds.has(entry.id) ? " open" : ""));
+    const head = el("button", "entry-head");
+    head.appendChild(el("span", "entry-date", formatDate(entry.date)));
+    head.appendChild(el("span", "entry-preview", entry.text.split("\n")[0]));
+    if (entry.status === "error" || entry.replyError) head.appendChild(el("span", "entry-mark", "未返信"));
+    else if (entry.status === "pending" || entry.replyPending) head.appendChild(el("span", "entry-mark", "……"));
+    head.appendChild(el("span", "entry-arrow", "▸"));
+    head.addEventListener("click", () => {
+      if (openIds.has(entry.id)) openIds.delete(entry.id); else openIds.add(entry.id);
+      item.classList.toggle("open");
+    });
+    const body = el("div", "entry-body");
+    body.appendChild(entryDetail(entry, { withText: true }));
+    item.appendChild(head);
+    item.appendChild(body);
+    listEl.appendChild(item);
+  }
+}
+
+function renderTdiary() {
+  const list = loadTdiary().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.ts - a.ts));
+  tdiaryListEl.innerHTML = "";
+  if (list.length === 0) {
+    tdiaryListEl.appendChild(el("p", "empty", "まだ何も書かれていません"));
+    return;
+  }
+  for (const t of list) {
+    const box = el("div", "tdiary");
+    box.appendChild(el("div", "t-date", formatDate(t.date)));
+    box.appendChild(el("div", "t-text", t.text));
+    box.appendChild(el("div", "meta", usageText(t.model, t.usage)));
+    box.appendChild(smallBtn("この頁を破る", () => {
+      if (!confirm("この頁を削除しますか？")) return;
+      saveTdiary(loadTdiary().filter((x) => x.id !== t.id));
+      renderTdiary();
+    }));
+    tdiaryListEl.appendChild(box);
+  }
+}
+
+function renderAll() {
+  renderLatest();
+  renderList();
+  renderTdiary();
+}
+
+function setBusy(v) {
+  busy = v;
+  saveBtn.disabled = v;
+}
+
+function switchView(name) {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + name));
+  window.scrollTo({ top: 0 });
+}
+
+/* =========================================================
+ * 書く・直す・消す
+ * ========================================================= */
 
 function resetForm() {
   editingId = null;
@@ -735,152 +1189,166 @@ function resetForm() {
   cancelBtn.style.display = "none";
 }
 
-function showComment(words) {
-  commentWords.textContent = words;
-  commentEl.classList.add("show");
-}
-
-function renderList() {
-  const entries = loadEntries()
-    .slice()
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
-
-  listEl.innerHTML = "";
-
-  if (entries.length === 0) {
-    const p = document.createElement("p");
-    p.className = "empty";
-    p.textContent = "まだ日記がありません";
-    listEl.appendChild(p);
-    return;
-  }
-
-  for (const entry of entries) {
-    const item = document.createElement("article");
-    item.className = "entry";
-
-    const head = document.createElement("button");
-    head.className = "entry-head";
-    head.innerHTML =
-      `<span class="entry-date"></span>` +
-      `<span class="entry-preview"></span>` +
-      `<span class="entry-arrow">▸</span>`;
-    head.querySelector(".entry-date").textContent = formatDate(entry.date);
-    head.querySelector(".entry-preview").textContent = entry.text.split("\n")[0];
-    head.addEventListener("click", () => item.classList.toggle("open"));
-
-    const body = document.createElement("div");
-    body.className = "entry-body";
-
-    const text = document.createElement("p");
-    text.className = "entry-text";
-    text.textContent = entry.text;
-
-    let commentBox = null;
-    if (entry.comment) {
-      commentBox = document.createElement("div");
-      commentBox.className = "entry-comment";
-      const who = document.createElement("div");
-      who.className = "who";
-      who.textContent = "時重";
-      const words = document.createElement("div");
-      words.className = "words";
-      words.textContent = entry.comment;
-      commentBox.appendChild(who);
-      commentBox.appendChild(words);
-    }
-
-    const row = document.createElement("div");
-    row.className = "btn-row";
-
-    const editBtn = document.createElement("button");
-    editBtn.className = "btn btn-sub";
-    editBtn.textContent = "編集";
-    editBtn.addEventListener("click", () => startEdit(entry.id));
-
-    const delBtn = document.createElement("button");
-    delBtn.className = "btn";
-    delBtn.textContent = "削除";
-    delBtn.addEventListener("click", () => removeEntry(entry.id));
-
-    row.appendChild(editBtn);
-    row.appendChild(delBtn);
-    body.appendChild(text);
-    if (commentBox) body.appendChild(commentBox);
-    body.appendChild(row);
-    item.appendChild(head);
-    item.appendChild(body);
-    listEl.appendChild(item);
-  }
-}
-
 function startEdit(id) {
-  const entry = loadEntries().find((e) => e.id === id);
+  const entry = findEntry(loadEntries(), id);
   if (!entry) return;
   editingId = id;
   dateInput.value = entry.date;
   textInput.value = entry.text;
   saveBtn.textContent = "更新する";
   cancelBtn.style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  switchView("write");
 }
 
 function removeEntry(id) {
-  if (!confirm("この日記を削除しますか？")) return;
+  if (!confirm("この日記を削除しますか？\n時重の返事とやり取りも一緒に消えます。")) return;
   saveEntries(loadEntries().filter((e) => e.id !== id));
   if (editingId === id) resetForm();
-  renderList();
+  if (latestId === id) latestId = null;
+  openIds.delete(id);
+  renderAll();
 }
 
 async function handleSave() {
   const date = dateInput.value;
   const text = textInput.value.trim();
-
-  if (!date) {
-    alert("日付を入れてください");
-    return;
-  }
-  if (!text) {
-    alert("本文を入れてください");
-    return;
-  }
+  if (!date) { alert("日付を入れてください"); return; }
+  if (!text) { alert("本文を入れてください"); return; }
 
   const entries = loadEntries();
-  let saved;
 
+  // 直す時は、本文だけを差し替える。返事はそのまま(書き直すかは別のボタンで決める)
   if (editingId !== null) {
-    saved = entries.find((e) => e.id === editingId);
+    const saved = findEntry(entries, editingId);
     if (saved) {
       saved.date = date;
       saved.text = text;
     }
-  } else {
-    saved = { id: Date.now(), date, text };
-    entries.push(saved);
+    if (saveEntries(entries)) {
+      latestId = editingId;
+      resetForm();
+      renderAll();
+    }
+    return;
   }
 
-  // 表示した一言は日記の一部として一緒に保存し、以後は固定する
-  // (AI設定時は通信に少し時間がかかるため、待つ間ボタンを無効化)
-  saveBtn.disabled = true;
-  const prevLabel = saveBtn.textContent;
-  saveBtn.textContent = "保存中…";
-  let words;
-  try {
-    words = await getTokishigeComment(saved);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = prevLabel;
+  // 新しい日記は、返事を待つ前に保存する(待っている間に閉じても消えないように)
+  const settings = loadSettings();
+  const entry = normalizeEntry({ id: Date.now(), date, text });
+  if (!aiReady(settings)) {
+    entry.comment = randomTokishigeLine();
+    entry.status = "preset";
   }
-  if (saved) saved.comment = words;
-
-  saveEntries(entries);
+  entries.push(entry);
+  if (!saveEntries(entries)) return;
+  latestId = entry.id;
   resetForm();
-  renderList();
-  showComment(words);
+  renderAll();
+  if (aiReady(settings)) await requestComment(entry.id);
+}
+
+/* =========================================================
+ * 時重に頼む (返事・やり取り・帳面)
+ * ========================================================= */
+
+/* 日記の中身を、保存し直してから描き直す */
+function updateEntry(id, fn) {
+  const entries = loadEntries();
+  const entry = findEntry(entries, id);
+  if (!entry) return null;
+  fn(entry);
+  saveEntries(entries);
+  renderAll();
+  return entry;
+}
+
+async function requestComment(id) {
+  if (busy) return;
+  setBusy(true);
+  updateEntry(id, (e) => { e.status = "pending"; e.error = ""; });
+  try {
+    const entries = loadEntries();
+    const r = await askTokishige(entries, findEntry(entries, id), "comment");
+    updateEntry(id, (e) => {
+      e.comment = r.text;
+      e.status = "ai";
+      e.model = r.model;
+      e.usage = r.usage;
+      e.truncated = !!r.truncated;
+    });
+  } catch (err) {
+    updateEntry(id, (e) => { e.status = "error"; e.error = err.message; });
+  } finally {
+    setBusy(false);
+    renderAll();
+  }
+}
+
+function regenerate(id) {
+  if (busy) return;
+  const entry = findEntry(loadEntries(), id);
+  if (!entry) return;
+  if (entry.replies.length && !confirm("返事を書き直すと、その後のやり取りは消えます。よろしいですか？")) return;
+  updateEntry(id, (e) => { e.replies = []; e.replyError = ""; e.replyPending = false; e.comment = ""; });
+  requestComment(id);
+}
+
+async function sendReply(id, text) {
+  text = (text || "").trim();
+  if (!text || busy) return;
+  delete replyDrafts[id];
+  updateEntry(id, (e) => { e.replies.push({ role: "user", text, ts: Date.now() }); });
+  await requestReply(id);
+}
+
+async function requestReply(id) {
+  if (busy) return;
+  setBusy(true);
+  updateEntry(id, (e) => { e.replyPending = true; e.replyError = ""; });
+  try {
+    const entries = loadEntries();
+    const r = await askTokishige(entries, findEntry(entries, id), "reply");
+    updateEntry(id, (e) => {
+      e.replies.push({ role: "assistant", text: r.text, ts: Date.now(), model: r.model, usage: r.usage, truncated: !!r.truncated });
+      e.replyPending = false;
+    });
+  } catch (err) {
+    updateEntry(id, (e) => { e.replyPending = false; e.replyError = err.message; });
+  } finally {
+    setBusy(false);
+    renderAll();
+  }
+}
+
+async function requestTdiary(id) {
+  if (busy) return;
+  const entries = loadEntries();
+  const entry = findEntry(entries, id);
+  if (!entry) return;
+  const exists = loadTdiary().some((t) => t.entryId === id);
+  if (exists && !confirm("この日の帳面はもうあります。書き直させますか？")) return;
+  setBusy(true);
+  renderAll();
+  try {
+    const r = await askTokishige(entries, entry, "tdiary");
+    const list = loadTdiary().filter((t) => t.entryId !== id);
+    list.push({ id: Date.now(), entryId: id, date: entry.date, text: r.text, ts: Date.now(), model: r.model, usage: r.usage });
+    saveTdiary(list);
+    setBusy(false);
+    renderAll();
+    switchView("tdiary");
+  } catch (err) {
+    alert("帳面を書かせられませんでした。\n" + err.message);
+  } finally {
+    setBusy(false);
+    renderAll();
+  }
 }
 
 /* =========================================================
  * バックアップ (書き出し / 読み込み)
+ * 書き出しは { app, version, entries, tokishigeDiary }。
+ * 読み込みは、改修前の書き出し(日記の配列だけ)にも対応。
  * ========================================================= */
 
 const exportBtn = document.getElementById("exportBtn");
@@ -889,18 +1357,20 @@ const importFile = document.getElementById("importFile");
 
 function handleExport() {
   const entries = loadEntries();
-  if (entries.length === 0) {
+  const tdiary = loadTdiary();
+  if (entries.length === 0 && tdiary.length === 0) {
     alert("書き出す日記がありません");
     return;
   }
-  const blob = new Blob([JSON.stringify(entries, null, 2)], {
-    type: "application/json",
-  });
+  const payload = { app: "diary", version: 2, exportedAt: new Date().toISOString(), entries, tokishigeDiary: tdiary };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `diary-backup-${todayString()}.json`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 function handleImport(file) {
@@ -913,7 +1383,10 @@ function handleImport(file) {
       alert("読み込めませんでした。書き出したJSONファイルを選んでください");
       return;
     }
-    if (!Array.isArray(imported)) {
+    const importedEntries = Array.isArray(imported) ? imported : (imported && imported.entries);
+    const importedTdiary = (!Array.isArray(imported) && imported && Array.isArray(imported.tokishigeDiary))
+      ? imported.tokishigeDiary : [];
+    if (!Array.isArray(importedEntries)) {
       alert("読み込めませんでした。書き出したJSONファイルを選んでください");
       return;
     }
@@ -921,49 +1394,48 @@ function handleImport(file) {
     const entries = loadEntries();
     const existing = new Set(entries.map((e) => `${e.date}\n${e.text}`));
     const usedIds = new Set(entries.map((e) => e.id));
+    const idMap = {};
     let added = 0;
     let skipped = 0;
 
-    for (const item of imported) {
-      if (!item || typeof item.date !== "string" || typeof item.text !== "string") {
-        continue;
-      }
+    for (const item of importedEntries) {
+      if (!item || typeof item.date !== "string" || typeof item.text !== "string") continue;
       const key = `${item.date}\n${item.text}`;
-      if (existing.has(key)) {
-        skipped++;
-        continue;
-      }
+      if (existing.has(key)) { skipped++; continue; }
       let id = typeof item.id === "number" ? item.id : Date.now();
       while (usedIds.has(id)) id++;
+      idMap[item.id] = id;
       usedIds.add(id);
       existing.add(key);
-      const comment =
-        typeof item.comment === "string" && item.comment !== ""
-          ? item.comment
-          : randomTokishigeLine();
-      entries.push({ id, date: item.date, text: item.text, comment });
+      const entry = normalizeEntry({ ...item, id });
+      if (entry.status === "pending") entry.status = entry.comment ? "legacy" : "none";
+      entry.replyPending = false;
+      entries.push(entry);
       added++;
     }
 
+    const tdiary = loadTdiary();
+    const tIds = new Set(tdiary.map((t) => t.id));
+    for (const t of importedTdiary) {
+      if (!t || typeof t.text !== "string" || tIds.has(t.id)) continue;
+      tdiary.push({ ...t, entryId: idMap[t.entryId] !== undefined ? idMap[t.entryId] : t.entryId });
+      tIds.add(t.id);
+    }
+
     saveEntries(entries);
-    renderList();
-    alert(
-      skipped > 0
-        ? `${added}件を読み込みました（重複${skipped}件はスキップ）`
-        : `${added}件を読み込みました`
-    );
+    saveTdiary(tdiary);
+    renderAll();
+    alert(skipped > 0 ? `${added}件を読み込みました（重複${skipped}件はスキップ）` : `${added}件を読み込みました`);
   };
   reader.readAsText(file);
 }
 
 exportBtn.addEventListener("click", handleExport);
-
 importBtn.addEventListener("click", () => {
   if (!confirm("読み込んだ日記は、現在の日記に追加されます。よろしいですか？")) return;
   importFile.value = "";
   importFile.click();
 });
-
 importFile.addEventListener("change", () => {
   const file = importFile.files[0];
   if (file) handleImport(file);
@@ -974,12 +1446,11 @@ importFile.addEventListener("change", () => {
  * ========================================================= */
 
 const settingsEl = document.getElementById("settings");
-const settingsBtn = document.getElementById("settingsBtn");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const providerSelect = document.getElementById("aiProvider");
 const modelSelect = document.getElementById("modelSelect");
 const modelCustom = document.getElementById("modelCustom");
+const effortSelect = document.getElementById("effortSelect");
+const thinkingSelect = document.getElementById("thinkingSelect");
 const personaInput = document.getElementById("persona");
 const keyInputs = {
   claude: document.getElementById("apiKeyClaude"),
@@ -987,76 +1458,123 @@ const keyInputs = {
   gemini: document.getElementById("apiKeyGemini"),
 };
 
-function renderModelOptions(provider, selected) {
+/* 会社を切り替えた時に、選んだ値を一時的に覚えておく */
+let draft = null;
+
+function renderProviderFields() {
+  const p = providerSelect.value;
+  const info = AI_PROVIDERS[p];
   modelSelect.innerHTML = "";
-  const info = AI_PROVIDERS[provider];
+  effortSelect.innerHTML = "";
   if (!info) {
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "（AIを使わない）";
-    modelSelect.appendChild(opt);
-    modelSelect.disabled = true;
-    modelCustom.disabled = true;
+    modelSelect.appendChild(el("option", "", "（AIを使わない）"));
+    effortSelect.appendChild(el("option", "", "（AIを使わない）"));
+    modelSelect.disabled = modelCustom.disabled = effortSelect.disabled = true;
+    modelCustom.value = "";
+    document.getElementById("effortNote").textContent = "";
+    document.getElementById("thinkingBox").style.display = "none";
     return;
   }
-  modelSelect.disabled = false;
-  modelCustom.disabled = false;
+  modelSelect.disabled = modelCustom.disabled = effortSelect.disabled = false;
   for (const m of info.models) {
-    const opt = document.createElement("option");
-    opt.value = m;
-    opt.textContent = m;
-    modelSelect.appendChild(opt);
+    const o = el("option", "", m);
+    o.value = m;
+    modelSelect.appendChild(o);
   }
-  if (selected && info.models.includes(selected)) modelSelect.value = selected;
+  modelSelect.value = draft.models[p];
+  modelCustom.value = draft.customModels[p];
+  for (const v of info.efforts) {
+    const o = el("option", "", v || "指定しない（モデルの標準）");
+    o.value = v;
+    effortSelect.appendChild(o);
+  }
+  effortSelect.value = draft.efforts[p];
+  document.getElementById("effortNote").textContent = info.effortNote;
+  document.getElementById("thinkingBox").style.display = p === "claude" ? "block" : "none";
 }
 
-function renderSettingsForm() {
-  const s = loadSettings();
-  providerSelect.value = s.provider;
-  personaInput.value = s.persona;
-  for (const p of Object.keys(keyInputs)) keyInputs[p].value = s.apiKeys[p];
-  renderModelOptions(s.provider, s.models[s.provider]);
-  modelCustom.value = AI_PROVIDERS[s.provider]
-    ? s.customModels[s.provider]
-    : "";
+/* 今の会社の欄の値を、下書きに写す */
+function captureProviderFields(p) {
+  if (!AI_PROVIDERS[p]) return;
+  draft.models[p] = modelSelect.value;
+  draft.customModels[p] = modelCustom.value.trim();
+  draft.efforts[p] = effortSelect.value;
+}
+
+let currentProvider = "none";
+
+function openSettings() {
+  draft = loadSettings();
+  currentProvider = draft.provider;
+  providerSelect.value = draft.provider;
+  renderProviderFields();
+  thinkingSelect.value = draft.thinking;
+  for (const p of Object.keys(keyInputs)) keyInputs[p].value = draft.apiKeys[p];
+  personaInput.value = draft.persona;
+  updatePersonaCount();
+  document.getElementById("replyLength").value = draft.replyLength;
+  document.getElementById("contextCount").value = draft.contextCount;
+  document.getElementById("maxTokens").value = draft.maxTokens;
+  document.getElementById("tdiaryPrompt").value = draft.tdiaryPrompt;
+  settingsEl.classList.add("open");
+}
+
+function updatePersonaCount() {
+  document.getElementById("personaCount").textContent = personaInput.value.length + "文字";
 }
 
 providerSelect.addEventListener("change", () => {
-  const s = loadSettings();
-  const p = providerSelect.value;
-  renderModelOptions(p, s.models[p]);
-  modelCustom.value = AI_PROVIDERS[p] ? s.customModels[p] : "";
+  captureProviderFields(currentProvider);
+  currentProvider = providerSelect.value;
+  renderProviderFields();
 });
 
-settingsBtn.addEventListener("click", () => {
-  renderSettingsForm();
-  settingsEl.classList.toggle("open");
-});
+personaInput.addEventListener("input", updatePersonaCount);
 
-closeSettingsBtn.addEventListener("click", () => {
-  settingsEl.classList.remove("open");
-});
+document.getElementById("settingsBtn").addEventListener("click", openSettings);
+document.getElementById("closeSettingsBtn").addEventListener("click", () => settingsEl.classList.remove("open"));
 
-saveSettingsBtn.addEventListener("click", () => {
-  const s = loadSettings();
+document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+  captureProviderFields(providerSelect.value);
+  const s = draft;
   s.provider = providerSelect.value;
-  s.persona = personaInput.value;
+  s.thinking = thinkingSelect.value;
   for (const p of Object.keys(keyInputs)) s.apiKeys[p] = keyInputs[p].value.trim();
-  if (AI_PROVIDERS[s.provider]) {
-    s.models[s.provider] = modelSelect.value;
-    s.customModels[s.provider] = modelCustom.value.trim();
+  s.persona = personaInput.value;
+  s.replyLength = document.getElementById("replyLength").value;
+  const cc = parseInt(document.getElementById("contextCount").value, 10);
+  s.contextCount = cc >= 0 ? Math.min(cc, 30) : 5;
+  const mt = parseInt(document.getElementById("maxTokens").value, 10);
+  s.maxTokens = mt >= 256 ? mt : 8000;
+  s.tdiaryPrompt = document.getElementById("tdiaryPrompt").value.trim() || DEFAULT_TDIARY_PROMPT;
+  if (saveSettings(s)) {
+    settingsEl.classList.remove("open");
+    renderAll();
+    alert("設定を保存しました");
   }
-  saveSettings(s);
-  settingsEl.classList.remove("open");
-  alert("設定を保存しました");
 });
 
+/* =========================================================
+ * 起動
+ * ========================================================= */
+
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => switchView(t.dataset.view)));
 saveBtn.addEventListener("click", handleSave);
 cancelBtn.addEventListener("click", resetForm);
 
+/* 待っている途中で閉じられた日記は、もう一度頼めるようにしておく */
+(function recoverInterrupted() {
+  const entries = loadEntries();
+  let changed = false;
+  for (const e of entries) {
+    if (e.status === "pending") { e.status = "error"; e.error = "返事を待っている途中で画面が閉じられました"; changed = true; }
+    if (e.replyPending) { e.replyPending = false; e.replyError = "返事を待っている途中で画面が閉じられました"; changed = true; }
+  }
+  if (changed) saveEntries(entries);
+})();
+
 resetForm();
-migrateComments();
-renderList();
+renderAll();
 </script>
 
 </body>
